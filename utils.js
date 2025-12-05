@@ -1,72 +1,25 @@
-/*global navigator*/
-'use strict';
+const { EOL } = require('os')
 
-const {
-  REGEX_BACKSLASH,
-  REGEX_REMOVE_BACKSLASH,
-  REGEX_SPECIAL_CHARS,
-  REGEX_SPECIAL_CHARS_GLOBAL
-} = require('./constants');
-
-exports.isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
-exports.hasRegexChars = str => REGEX_SPECIAL_CHARS.test(str);
-exports.isRegexChar = str => str.length === 1 && exports.hasRegexChars(str);
-exports.escapeRegex = str => str.replace(REGEX_SPECIAL_CHARS_GLOBAL, '\\$1');
-exports.toPosixSlashes = str => str.replace(REGEX_BACKSLASH, '/');
-
-exports.isWindows = () => {
-  if (typeof navigator !== 'undefined' && navigator.platform) {
-    const platform = navigator.platform.toLowerCase();
-    return platform === 'win32' || platform === 'windows';
+const getFirstRegexpMatchOrDefault = (text, regexp, defaultValue) => {
+  regexp.lastIndex = 0 // https://stackoverflow.com/a/11477448/4536543
+  let match = regexp.exec(text)
+  if (match !== null) {
+    return match[1]
+  } else {
+    return defaultValue
   }
+}
 
-  if (typeof process !== 'undefined' && process.platform) {
-    return process.platform === 'win32';
-  }
+const DEFAULT_INDENT = '  '
+const INDENT_REGEXP = /^([ \t]+)[^\s]/m
 
-  return false;
-};
+module.exports.detectIndent = text =>
+  getFirstRegexpMatchOrDefault(text, INDENT_REGEXP, DEFAULT_INDENT)
+module.exports.DEFAULT_INDENT = DEFAULT_INDENT
 
-exports.removeBackslashes = str => {
-  return str.replace(REGEX_REMOVE_BACKSLASH, match => {
-    return match === '\\' ? '' : match;
-  });
-};
+const DEFAULT_EOL = EOL
+const EOL_REGEXP = /(\r\n|\n|\r)/g
 
-exports.escapeLast = (input, char, lastIdx) => {
-  const idx = input.lastIndexOf(char, lastIdx);
-  if (idx === -1) return input;
-  if (input[idx - 1] === '\\') return exports.escapeLast(input, char, idx - 1);
-  return `${input.slice(0, idx)}\\${input.slice(idx)}`;
-};
-
-exports.removePrefix = (input, state = {}) => {
-  let output = input;
-  if (output.startsWith('./')) {
-    output = output.slice(2);
-    state.prefix = './';
-  }
-  return output;
-};
-
-exports.wrapOutput = (input, state = {}, options = {}) => {
-  const prepend = options.contains ? '' : '^';
-  const append = options.contains ? '' : '$';
-
-  let output = `${prepend}(?:${input})${append}`;
-  if (state.negated === true) {
-    output = `(?:^(?!${output}).*$)`;
-  }
-  return output;
-};
-
-exports.basename = (path, { windows } = {}) => {
-  const segs = path.split(windows ? /[\\/]/ : '/');
-  const last = segs[segs.length - 1];
-
-  if (last === '') {
-    return segs[segs.length - 2];
-  }
-
-  return last;
-};
+module.exports.detectEOL = text =>
+  getFirstRegexpMatchOrDefault(text, EOL_REGEXP, DEFAULT_EOL)
+module.exports.DEFAULT_EOL = DEFAULT_EOL
