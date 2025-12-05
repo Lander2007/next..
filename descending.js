@@ -3,9 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = _default;
-var _ascending = _interopRequireDefault(require("./ascending.js"));
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-function _default(series) {
-  return (0, _ascending.default)(series).reverse();
+exports.default = descending;
+function descending(a, b) {
+  return a == null || b == null ? NaN : b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
 }

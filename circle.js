@@ -3,12 +3,15 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-var _math = require("../math.js");
-var _default = exports.default = {
-  draw(context, size) {
-    const r = (0, _math.sqrt)(size / _math.pi);
-    context.moveTo(r, 0);
-    context.arc(0, 0, r, 0, _math.tau);
-  }
-};
+exports.circleIn = circleIn;
+exports.circleInOut = circleInOut;
+exports.circleOut = circleOut;
+function circleIn(t) {
+  return 1 - Math.sqrt(1 - t * t);
+}
+function circleOut(t) {
+  return Math.sqrt(1 - --t * t);
+}
+function circleInOut(t) {
+  return ((t *= 2) <= 1 ? 1 - Math.sqrt(1 - t * t) : Math.sqrt(1 - (t -= 2) * t) + 1) / 2;
+}
